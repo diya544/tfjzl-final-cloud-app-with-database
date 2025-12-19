@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ submission.course.name }} - Exam Result</title>
+    <style>
+        body {
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: linear-gradient(135deg, #e3f2fd, #fce4ec);
+            margin: 0;
+            padding: 40px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: auto;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+        }
+
+        h1 {
+            text-align: center;
+            color: #2e7d32;
+            margin-bottom: 10px;
+        }
+
+        .score-box {
+            text-align: center;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 10px;
+            background: #f1f8e9;
+            border: 2px solid #aed581;
+        }
+
+        .score-box h2 {
+            margin: 0;
+            color: #33691e;
+        }
+
+        .result-status {
+            font-size: 20px;
+            margin-top: 10px;
+            font-weight: bold;
+        }
+
+        .passed {
+            color: #2e7d32;
+        }
+
+        .failed {
+            color: #c62828;
+        }
+
+        .question-card {
+            background: #fafafa;
+            border-left: 6px solid #1976d2;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 8px;
+        }
+
+        .question-card h3 {
+            margin-top: 0;
+            color: #0d47a1;
+        }
+
+        .answer {
+            margin-left: 15px;
+            font-size: 15px;
+        }
+
+        .correct {
+            color: #2e7d32;
+            font-weight: bold;
+        }
+
+        .incorrect {
+            color: #c62828;
+            font-weight: bold;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #555;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+
+    <!-- 🎉 CONGRATULATIONS MESSAGE -->
+    {% if passed %}
+        <h1>🎉 Congratulations! You have successfully passed the exam 🎉</h1>
+    {% else %}
+        <h1>📘 Exam Completed</h1>
+    {% endif %}
+
+    <!-- 📊 SCORE SECTION -->
+    <div class="score-box">
+        <h2>Your Score: {{ submission.score }} / {{ total_marks }}</h2>
+        {% if passed %}
+            <div class="result-status passed">✅ Status: Passed</div>
+        {% else %}
+            <div class="result-status failed">❌ Status: Failed</div>
+        {% endif %}
+    </div>
+
+    <!-- 📋 DETAILED EXAM RESULTS -->
+    <h2>📋 Exam Results Breakdown</h2>
+
+    {% for question in questions %}
+        <div class="question-card">
+            <h3>{{ forloop.counter }}. {{ question.question_text }}</h3>
+
+            {% with selected=selected_choices|dictsort:"id" %}
+            {% endwith %}
+
+            <p class="answer">
+                <strong>Selected Answer:</strong>
+                {% for choice in selected_choices %}
+                    {% if choice.question == question %}
+                        {{ choice.choice_text }}
+                    {% endif %}
+                {% endfor %}
+            </p>
+
+            <p class="answer">
+                <strong>Correct Answer(s):</strong>
+                {% for choice in question.choice_set.all %}
+                    {% if choice.is_correct %}
+                        {{ choice.choice_text }}{% if not forloop.last %}, {% endif %}
+                    {% endif %}
+                {% endfor %}
+            </p>
+
+            {% if question.choice_set.filter(is_correct=True).first in selected_choices %}
+                <p class="correct">✅ Correct</p>
+            {% else %}
+                <p class="incorrect">❌ Incorrect</p>
+            {% endif %}
+        </div>
+    {% endfor %}
+
+    <div class="footer">
+        © OnlineCourse Mock Exam System
+    </div>
+
+</div>
+</body>
+</html>

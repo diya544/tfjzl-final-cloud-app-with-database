@@ -1,48 +1,58 @@
-from django.shortcuts import render, get_object_or_404, redirect
-from .models import Course, Lesson, Question, Choice, Submission
-from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, get_object_or_404
+from .models import Course, Lesson, Question, Choice
 
-@login_required
-def submit(request, course_id):
-    course = get_object_or_404(Course, pk=course_id)
-    user = request.user
+def lesson_detail(request, lesson_id):
+    lesson = get_object_or_404(Lesson, id=lesson_id)
+    questions = lesson.question_set.all()
 
-    # Create a new submission for this user and course
-    submission = Submission.objects.create(user=user, course=course)
-    
-    # Get the POST data for selected choices
-    selected_choice_ids = []
-    for key in request.POST:
-        if key.startswith('choice'):
-            selected_choice_ids.append(int(request.POST[key]))
+    if request.method == "POST":
+        total_marks = sum(q.grade for q in questions)
+        score = 0
+        results = []
 
-    # Add selected choices to the submission
-    selected_choices = Choice.objects.filter(id__in=selected_choice_ids)
-    submission.choices.set(selected_choices)
+        for question in questions:
+            selected_choice_id = request.POST.get(str(question.id))
 
-    # Calculate score
-    score = 0
-    questions = Question.objects.filter(lesson__course=course)
-    for question in questions:
-        correct_choices = question.choice_set.filter(is_correct=True)
-        if set(correct_choices) == set(selected_choices.filter(question=question)):
-            score += question.grade
+            correct_choices = question.choice_set.filter(is_correct=True)
+            correct_answers = [c.choice_text for c in correct_choices]
 
-    submission.score = score
-    submission.save()
+            if selected_choice_id:
+                selected_choice = Choice.objects.get(id=selected_choice_id)
+                is_correct = selected_choice.is_correct
 
-    return redirect('show_exam_result', submission_id=submission.id)
+                if is_correct:
+                    score += question.grade
 
-@login_required
-def show_exam_result(request, submission_id):
-    submission = get_object_or_404(Submission, pk=submission_id)
-    selected_choices = submission.choices.all()
-    questions = Question.objects.filter(lesson__course=submission.course)
+                results.append({
+                    "question": question.question_text,
+                    "selected": selected_choice.choice_text,
+                    "correct": correct_answers,
+                    "is_correct": is_correct
+                })
+            else:
+                results.append({
+                    "question": question.question_text,
+                    "selected": "Not answered",
+                    "correct": correct_answers,
+                    "is_correct": False
+                })
 
-    context = {
-        'submission': submission,
-        'selected_choices': selected_choices,
-        'questions': questions,
-    }
+        passed = score >= (0.5 * total_marks)
 
-    return render(request, 'exam_result.html', context)
+        return render(request, "course/quiz_result.html", {
+            "lesson": lesson,
+            "score": score,
+            "total": total_marks,
+            "passed": passed,
+            "results": results
+        })
+
+    return render(request, "course/lesson_detail.html", {
+        "lesson": lesson,
+        "questions": questions
+    })
+
+
+def course_list(request):
+    courses = Course.objects.all().distinct()
+    return render(request, "course/course_list.html", {"courses": courses})

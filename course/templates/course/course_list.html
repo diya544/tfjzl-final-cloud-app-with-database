@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Courses</title>
+</head>
+<body>
+    <h1>Available Courses</h1>
+    {% for course in courses %}
+        <h2>{{ course.name }}</h2>
+        <ul>
+            {% for lesson in course.lesson_set.all %}
+                <li>
+                    <a href="{% url 'lesson_detail' lesson.id %}">{{ lesson.title }}</a>
+                </li>
+            {% empty %}
+                <li>No lessons available.</li>
+            {% endfor %}
+        </ul>
+        <hr>
+    {% empty %}
+        <p>No courses available.</p>
+    {% endfor %}
+</body>
+</html>

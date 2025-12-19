@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{{ lesson.title }}</title>
+</head>
+<body>
+    <h1>{{ lesson.title }}</h1>
+    <p>{{ lesson.description }}</p>
+    <form method="post">
+        {% csrf_token %}
+        {% for question in questions %}
+            <div>
+                <p><strong>{{ forloop.counter }}. {{ question.question_text }}</strong></p>
+                {% for choice in question.choice_set.all %}
+                    <label>
+                        <input type="radio" name="{{ question.id }}" value="{{ choice.id }}">
+                        {{ choice.choice_text }}
+                    </label><br>
+                {% endfor %}
+            </div>
+            <hr>
+        {% endfor %}
+        <button type="submit">Submit Quiz</button>
+    </form>
+</body>
+</html>
