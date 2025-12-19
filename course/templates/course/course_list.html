@@ -1,24 +1,69 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Courses</title>
+    <title>Available Courses</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f7f7f7;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .course-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .course-card {
+            background: white;
+            padding: 20px 25px;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .course-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+        .course-card a {
+            text-decoration: none;
+            color: #4CAF50;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        .course-card a:hover {
+            text-decoration: underline;
+        }
+        .no-lessons {
+            color: #888;
+            font-size: 0.95em;
+            margin-top: 5px;
+        }
+    </style>
 </head>
 <body>
-    <h1>Available Courses</h1>
-    {% for course in courses %}
-        <h2>{{ course.name }}</h2>
-        <ul>
-            {% for lesson in course.lesson_set.all %}
-                <li>
-                    <a href="{% url 'lesson_detail' lesson.id %}">{{ lesson.title }}</a>
-                </li>
-            {% empty %}
-                <li>No lessons available.</li>
+    <div class="container">
+        <h1>Available Courses</h1>
+        <div class="course-list">
+            {% for course in courses %}
+                <div class="course-card">
+                    <a href="{% url 'lesson_detail' course.lesson_set.first.id %}">{{ course.name }}</a>
+                    {% if course.lesson_set.count == 0 %}
+                        <p class="no-lessons">No lessons available.</p>
+                    {% endif %}
+                </div>
             {% endfor %}
-        </ul>
-        <hr>
-    {% empty %}
-        <p>No courses available.</p>
-    {% endfor %}
+        </div>
+    </div>
 </body>
 </html>

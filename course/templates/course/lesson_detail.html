@@ -2,25 +2,99 @@
 <html>
 <head>
     <title>{{ lesson.title }}</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            background: #f7f7f7; 
+            margin: 0; 
+            padding: 0; 
+        }
+        .container {
+            max-width: 900px; 
+            margin: 40px auto; 
+            background: white; 
+            padding: 30px; 
+            border-radius: 12px; 
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+        h1 { 
+            text-align: center; 
+            color: #333; 
+            margin-bottom: 20px; 
+        }
+        p.lesson-desc { 
+            font-size: 1.1em; 
+            color: #555; 
+            margin-bottom: 30px; 
+        }
+        .question {
+            background: #f9f9f9; 
+            padding: 15px 20px; 
+            border-radius: 8px; 
+            margin-bottom: 15px; 
+            border-left: 6px solid #4CAF50;
+        }
+        .question p {
+            margin: 0 0 10px 0;
+            font-weight: bold;
+        }
+        .choices label {
+            display: block;
+            margin-bottom: 8px;
+            cursor: pointer;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: 0.2s;
+        }
+        .choices input[type="radio"] {
+            margin-right: 10px;
+        }
+        .choices label:hover {
+            background: #e0f7fa;
+        }
+        button {
+            display: block;
+            margin: 30px auto 0 auto;
+            padding: 12px 25px;
+            font-size: 1em;
+            background: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        button:hover {
+            background: #45a049;
+        }
+        hr {
+            border: none;
+            border-top: 1px solid #eee;
+            margin: 20px 0;
+        }
+    </style>
 </head>
 <body>
+<div class="container">
     <h1>{{ lesson.title }}</h1>
-    <p>{{ lesson.description }}</p>
+    <p class="lesson-desc">{{ lesson.description }}</p>
     <form method="post">
         {% csrf_token %}
         {% for question in questions %}
-            <div>
-                <p><strong>{{ forloop.counter }}. {{ question.question_text }}</strong></p>
-                {% for choice in question.choice_set.all %}
-                    <label>
-                        <input type="radio" name="{{ question.id }}" value="{{ choice.id }}">
-                        {{ choice.choice_text }}
-                    </label><br>
-                {% endfor %}
+            <div class="question">
+                <p>{{ forloop.counter }}. {{ question.question_text }}</p>
+                <div class="choices">
+                    {% for choice in question.choice_set.all %}
+                        <label>
+                            <input type="radio" name="{{ question.id }}" value="{{ choice.id }}">
+                            {{ choice.choice_text }}
+                        </label>
+                    {% endfor %}
+                </div>
             </div>
-            <hr>
         {% endfor %}
         <button type="submit">Submit Quiz</button>
     </form>
+</div>
 </body>
 </html>
