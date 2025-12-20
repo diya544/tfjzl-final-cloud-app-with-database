@@ -1,5 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from .models import Course, Lesson, Question, Choice
+from django.http import HttpResponse
+
 
 def lesson_detail(request, lesson_id):
     lesson = get_object_or_404(Lesson, id=lesson_id)
@@ -56,3 +58,11 @@ def lesson_detail(request, lesson_id):
 def course_list(request):
     courses = Course.objects.all().distinct()
     return render(request, "course/course_list.html", {"courses": courses})
+
+
+def submit(request, course_id):
+    return HttpResponse("Submit view placeholder for Task 6")
+
+
+def show_exam_result(request, course_id, submission_id):
+    return HttpResponse("Exam result placeholder")
