@@ -1,16 +1,53 @@
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
-from .models import Course, Lesson, Question, Choice, Submission
-
-
-def course_list(request):
-    courses = Course.objects.all().distinct()
-    return render(request, "course/course_list.html", {"courses": courses})
+from django.shortcuts import render, get_object_or_404
+from .models import Course, Lesson, Question, Choice
+from django.http import HttpResponse
 
 
 def lesson_detail(request, lesson_id):
     lesson = get_object_or_404(Lesson, id=lesson_id)
     questions = lesson.question_set.all()
+
+    if request.method == "POST":
+        total_marks = sum(q.grade for q in questions)
+        score = 0
+        results = []
+
+        for question in questions:
+            selected_choice_id = request.POST.get(str(question.id))
+
+            correct_choices = question.choice_set.filter(is_correct=True)
+            correct_answers = [c.choice_text for c in correct_choices]
+
+            if selected_choice_id:
+                selected_choice = Choice.objects.get(id=selected_choice_id)
+                is_correct = selected_choice.is_correct
+
+                if is_correct:
+                    score += question.grade
+
+                results.append({
+                    "question": question.question_text,
+                    "selected": selected_choice.choice_text,
+                    "correct": correct_answers,
+                    "is_correct": is_correct
+                })
+            else:
+                results.append({
+                    "question": question.question_text,
+                    "selected": "Not answered",
+                    "correct": correct_answers,
+                    "is_correct": False
+                })
+
+        passed = score >= (0.5 * total_marks)
+
+        return render(request, "course/quiz_result.html", {
+            "lesson": lesson,
+            "score": score,
+            "total": total_marks,
+            "passed": passed,
+            "results": results
+        })
 
     return render(request, "course/lesson_detail.html", {
         "lesson": lesson,
@@ -18,53 +55,14 @@ def lesson_detail(request, lesson_id):
     })
 
 
-# ✅ REQUIRED FOR TASK 5
-@login_required
+def course_list(request):
+    courses = Course.objects.all().distinct()
+    return render(request, "course/course_list.html", {"courses": courses})
+
+
 def submit(request, course_id):
-    course = get_object_or_404(Course, id=course_id)
-
-    # create submission
-    submission = Submission.objects.create(
-        user=request.user,
-        course=course
-    )
-
-    # save selected choices
-    for key, value in request.POST.items():
-        if key.isdigit():
-            choice = get_object_or_404(Choice, id=int(value))
-            submission.choices.add(choice)
-
-    return redirect(
-        'show_exam_result',
-        course_id=course.id,
-        submission_id=submission.id
-    )
+    return HttpResponse("Submit view placeholder for Task 6")
 
 
-# ✅ REQUIRED FOR TASK 5
-@login_required
 def show_exam_result(request, course_id, submission_id):
-    course = get_object_or_404(Course, id=course_id)
-    submission = get_object_or_404(Submission, id=submission_id)
-
-    questions = Question.objects.filter(lesson__course=course)
-
-    total_marks = sum(q.grade for q in questions)
-    score = 0
-
-    for question in questions:
-        selected = submission.choices.filter(question=question)
-        if selected.exists() and selected.first().is_correct:
-            score += question.grade
-
-    passed = score >= (0.5 * total_marks)
-
-    return render(request, "course/exam_result_bootstrap.html", {
-        "course": course,
-        "submission": submission,
-        "questions": questions,
-        "score": score,
-        "total_marks": total_marks,
-        "passed": passed,
-    })
+    return HttpResponse("Exam result placeholder")
